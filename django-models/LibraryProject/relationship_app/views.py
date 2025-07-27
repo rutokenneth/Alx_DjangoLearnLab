@@ -1,7 +1,11 @@
 from django.shortcuts import render
 from django.http import HttpResponse
+from django.contrib.auth.forms import UserCreationForm
+from django.contrib import messages
 from django.views.generic import DetailView
+from django.contrib.auth.decorators import login_required
 from .models import Book, Library, Author, Librarian
+
 
 # Create your views here.
 def book_list(request):
@@ -30,3 +34,23 @@ class LibraryDetailView(DetailView):
             context['librarian'] = None # No librarian found for this library
 
         return context
+
+# registration view
+def register(request):
+    if request.method == 'POST':
+        form = UserCreationForm(request.POST)
+        if form.is_valid():
+            form.save()
+            username = form.cleaned_data.get('username')
+            messages.success(request, f'Account created for {username}! You can now log in.')
+            return redirect('login') # Redirect to the login page
+    else:
+        form = UserCreationForm()
+    return render(request, 'registration/register.html', {'form': form})
+
+@login_required # Decorator to restrict access to authenticated users
+def profile_view(request):
+    """
+    A simple example view that requires the user to be logged in.
+    """
+    return render(request, 'profile.html', {'user': request.user})
