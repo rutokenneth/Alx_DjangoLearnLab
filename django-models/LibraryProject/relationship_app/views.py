@@ -11,13 +11,10 @@ from .models import Book, Library, Author, Librarian
 def book_list(request):
     books = Book.objects.all().order_by('title')
     
-    output = []
-    output.append("<h1>All Books<h2>")
-    output.append("<ul>")
-    for book in books:
-        output.append(f"<li>{book.title} (Author: {book.author.name})</li>")
-    output.append("<ul>")
-    return HttpResponse("".join(output))
+    context = {
+        'books': books
+    }
+    return render(request, 'relationship_app/list_books.html', context)
 
 class LibraryDetailView(DetailView):
     model = Library
