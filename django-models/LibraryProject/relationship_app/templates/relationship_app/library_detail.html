@@ -1,17 +1,95 @@
-<!-- library_detail.html -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Library Detail</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ library.name }} - Library Details</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f4f4f4;
+        }
+        h1 {
+            color: #0056b3;
+            border-bottom: 2px solid #ddd;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+        }
+        h2 {
+            color: #333;
+            margin-top: 30px;
+        }
+        ul {
+            list-style-type: none;
+            padding: 0;
+        }
+        li {
+            background-color: #fff;
+            margin-bottom: 10px;
+            padding: 10px;
+            border-radius: 5px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .book-title {
+            font-weight: bold;
+            color: #007bff;
+        }
+        .book-author {
+            font-style: italic;
+            color: #6c757d;
+            font-size: 0.9em;
+        }
+        .no-books {
+            color: #888;
+            font-style: italic;
+        }
+        .back-link {
+            display: inline-block;
+            margin-top: 20px;
+            padding: 8px 15px;
+            background-color: #007bff;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+        }
+        .back-link:hover {
+            background-color: #0056b3;
+        }
+    </style>
 </head>
 <body>
     <h1>Library: {{ library.name }}</h1>
-    <h2>Books in Library:</h2>
-    <ul>
-        {% for book in library.books.all %}
-        <li>{{ book.title }} by {{ book.author.name }} (Published {{ book.publication_year }})</li>
-        {% endfor %}
-    </ul>
+
+    {% if library.librarian %}
+        <p>Managed by: **{{ library.librarian.name }}**</p>
+    {% else %}
+        <p>No librarian assigned yet.</p>
+    {% endif %}
+
+    <h2>Books Available:</h2>
+    {% if library.books.all %}
+        <ul>
+            {% for book in library.books.all %}
+                <li>
+                    <div>
+                        <span class="book-title">{{ book.title }}</span>
+                    </div>
+                    {% if book.author %}
+                        <span class="book-author">by {{ book.author.name }}</span>
+                    {% else %}
+                        <span class="book-author">Author unknown</span>
+                    {% endif %}
+                </li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p class="no-books">This library currently has no books.</p>
+    {% endif %}
+
+    <a href="{% url 'book_list' %}" class="back-link">Back to all books</a>
 </body>
 </html>
