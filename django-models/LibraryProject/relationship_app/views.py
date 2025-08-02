@@ -1,6 +1,7 @@
 from django.shortcuts import render
 from django.http import HttpResponse
 from django.contrib.auth.forms import UserCreationForm
+from django.contrib.auth.decorators import user_passes_test
 from django.contrib import messages
 from django.views.generic import DetailView
 from django.contrib.auth.decorators import login_required
@@ -45,9 +46,32 @@ def register(request):
         form = UserCreationForm()
     return render(request, 'registration/register.html', {'form': form})
 
-@login_required # Decorator to restrict access to authenticated users
-def profile_view(request):
-    """
-    A simple example view that requires the user to be logged in.
-    """
-    return render(request, 'profile.html', {'user': request.user})
+# --- Role Check Helper Functions ---
+# def is_admin(user):
+    # return user.is_authenticated and hasattr(user, 'userprofile') and user.userprofile.role == 'Admin'
+# 
+# def is_librarian(user):
+    # return user.is_authenticated and hasattr(user, 'userprofile') and user.userprofile.role == 'Librarian'
+# 
+# def is_member(user):
+    # return user.is_authenticated and hasattr(user, 'userprofile') and user.userprofile.role == 'Member'
+# 
+# --- Role-Based Views ---
+# @login_required # Ensures user is logged in
+# @user_passes_test(is_admin, login_url='/accounts/login/') # Redirects to login if not admin
+# def admin_view(request):
+    # """View accessible only by Admin users."""
+    # return render(request, 'relationship_app/admin_view.html')
+# 
+# @login_required
+# @user_passes_test(is_librarian, login_url='/accounts/login/')
+# def librarian_view(request):
+    # """View accessible only by Librarian users."""
+    # return render(request, 'relationship_app/librarian_view.html')
+# 
+# @login_required
+# @user_passes_test(is_member, login_url='/accounts/login/')
+# def member_view(request):
+    # """View accessible only by Member users."""
+    # return render(request, 'relationship_app/member_view.html')
+# 
