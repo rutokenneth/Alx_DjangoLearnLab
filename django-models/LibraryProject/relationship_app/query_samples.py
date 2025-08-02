@@ -1,111 +1,112 @@
-# relationship_app/query_data.py
-
 import os
 import django
 
-# Set up Django environment
+# Set up the Django environment to use the project's settings
+# Replace 'your_project_name' with the actual name of your Django project folder
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'LibraryProject.settings')
 django.setup()
 
+# Import your models AFTER setting up Django
+# Replace 'your_app_name' with the name of the app where your models are defined
 from relationship_app.models import Author, Book, Library, Librarian
 
-def query_books_by_author(author_name):
+def populate_data():
     """
-    Queries and prints all books by a specific author.
+    Populates the database with some sample data for testing queries.
+    Clears existing data to avoid duplicates on re-runs.
     """
+    print("--- Clearing old data... ---")
+    Author.objects.all().delete()
+    Book.objects.all().delete()
+    Library.objects.all().delete()
+    Librarian.objects.all().delete()
+
+    print("--- Populating database with sample data... ---")
+
+    # Create Authors
+    author1 = Author.objects.create(name="J.R.R. Tolkien")
+    author2 = Author.objects.create(name="George Orwell")
+    author3 = Author.objects.create(name="Jane Austen")
+
+    # Create Books
+    book1 = Book.objects.create(title="The Hobbit", author=author1)
+    book2 = Book.objects.create(title="The Lord of the Rings", author=author1)
+    book3 = Book.objects.create(title="1984", author=author2)
+    book4 = Book.objects.create(title="Animal Farm", author=author2)
+    book5 = Book.objects.create(title="Pride and Prejudice", author=author3)
+
+    # Create Libraries and Librarians
+    library1 = Library.objects.create(name="Central City Library")
+    Librarian.objects.create(name="Mr. Anderson", library=library1)
+
+    library2 = Library.objects.create(name="Northside Community Library")
+    Librarian.objects.create(name="Ms. Evelyn Reed", library=library2)
+
+    # Add books to libraries (ManyToMany relationship)
+    library1.books.add(book1, book3, book5)
+    library2.books.add(book2, book3, book4) # Note: '1984' is in both libraries
+
+    print("--- Data population complete. ---\n")
+
+
+def run_queries():
+    """
+    Executes the required queries and prints the results.
+    """
+    print("--- Running Queries ---")
+
+    # 1. Query all books by a specific author (George Orwell)
+    print("\n[1] Querying all books by 'George Orwell':")
     try:
-        author = Author.objects.get(name=author_name)
-        books = Book.objects.filter(author=author)
-        print(f"\n--- Books by {author.name} ---")
-        if books:
-            for book in books:
-                print(f"- {book.title}")
+        # First, get the author object
+        george_orwell = Author.objects.get(name="George Orwell")
+        # Then, use the reverse relationship to find all his books
+        orwell_books = Book.objects.filter(author=george_orwell)
+        if orwell_books:
+            for book in orwell_books:
+                print(f"  - {book.title}")
         else:
-            print(f"No books found for {author_name}.")
+            print("  - No books found for this author.")
     except Author.DoesNotExist:
-        print(f"Author '{author_name}' not found.")
-    except Exception as e:
-        print(f"An error occurred: {e}")
+        print("  - Author 'George Orwell' not found in the database.")
 
-def list_books_in_library(library_name):
-    """
-    Lists all books in a specific library.
-    """
+
+    # 2. List all books in a specific library (Central City Library)
+    print("\n[2] Listing all books in 'Central City Library':")
     try:
-        library = Library.objects.get(name=library_name)
-        books = library.books.all()
-        print(f"\n--- Books in {library.name} Library ---")
-        if books:
-            for book in books:
-                print(f"- {book.title} (by {book.author.name})")
+        # Get the library object
+        central_library = Library.objects.get(name="Central City Library")
+        # Access the ManyToManyField directly to get all related books
+        library_books = central_library.books.all()
+        if library_books:
+            for book in library_books:
+                print(f"  - {book.title} (by {book.author.name})")
         else:
-            print(f"No books found in {library_name} Library.")
+            print("  - This library has no books.")
     except Library.DoesNotExist:
-        print(f"Library '{library_name}' not found.")
-    except Exception as e:
-        print(f"An error occurred: {e}")
+        print("  - Library 'Central City Library' not found.")
 
-def retrieve_librarian_for_library(library_name):
-    """
-    Retrieves and prints the librarian for a specific library.
-    """
+
+    # 3. Retrieve the librarian for a specific library (Northside Community Library)
+    print("\n[3] Retrieving the librarian for 'Northside Community Library':")
     try:
-        library = Library.objects.get(name=library_name)
-        librarian = Librarian.objects.get(library=library)
-        print(f"\n--- Librarian for {library.name} Library ---")
-        print(f"Librarian: {librarian.name}")
+        # Get the library object
+        northside_library = Library.objects.get(name="Northside Community Library")
+        # Access the OneToOneField reverse relationship
+        # The related name is automatically 'librarian' (the model name in lowercase)
+        librarian = northside_library.librarian
+        print(f"  - The librarian is: {librarian.name}")
     except Library.DoesNotExist:
-        print(f"Library '{library_name}' not found.")
+        print("  - Library 'Northside Community Library' not found.")
     except Librarian.DoesNotExist:
-        print(f"No librarian found for '{library_name}' Library.")
-    except Exception as e:
-        print(f"An error occurred: {e}")
+        # This happens if a Library exists but has no associated Librarian
+        print("  - This library does not have an assigned librarian.")
+
+    print("\n--- Queries Finished ---")
+
 
 if __name__ == "__main__":
-    # Example Usage:
-
-    # 1. Populate some sample data (optional, but good for testing)
-    # You would typically do this through the Django admin or data migrations
-    print("--- Populating Sample Data (if not already present) ---")
-    author1, created = Author.objects.get_or_create(name="J.K. Rowling")
-    if created: print(f"Created Author: {author1.name}")
-    author2, created = Author.objects.get_or_create(name="George Orwell")
-    if created: print(f"Created Author: {author2.name}")
-
-    book1, created = Book.objects.get_or_create(title="Harry Potter and the Sorcerer's Stone", author=author1)
-    if created: print(f"Created Book: {book1.title}")
-    book2, created = Book.objects.get_or_create(title="1984", author=author2)
-    if created: print(f"Created Book: {book2.title}")
-    book3, created = Book.objects.get_or_create(title="Animal Farm", author=author2)
-    if created: print(f"Created Book: {book3.title}")
-    book4, created = Book.objects.get_or_create(title="Harry Potter and the Chamber of Secrets", author=author1)
-    if created: print(f"Created Book: {book4.title}")
-
-    library1, created = Library.objects.get_or_create(name="Central Library")
-    if created:
-        library1.books.add(book1, book2, book4)
-        print(f"Created Library: {library1.name} and added books.")
-    
-    library2, created = Library.objects.get_or_create(name="Community Library")
-    if created:
-        library2.books.add(book3)
-        print(f"Created Library: {library2.name} and added books.")
-
-    librarian1, created = Librarian.objects.get_or_create(name="Alice Smith", library=library1)
-    if created: print(f"Created Librarian: {librarian1.name} for {library1.name}")
-    librarian2, created = Librarian.objects.get_or_create(name="Bob Johnson", library=library2)
-    if created: print(f"Created Librarian: {librarian2.name} for {library2.name}")
-
-    # --- Perform the queries ---
-    query_books_by_author("J.K. Rowling")
-    query_books_by_author("George Orwell")
-    query_books_by_author("NonExistent Author")
-
-    list_books_in_library("Central Library")
-    list_books_in_library("Community Library")
-    list_books_in_library("NonExistent Library")
-
-    retrieve_librarian_for_library("Central Library")
-    retrieve_librarian_for_library("Community Library")
-    retrieve_librarian_for_library("Library Without Librarian") # This will demonstrate error handling
-    retrieve_librarian_for_library("NonExistent Library")
+    # Populate data first to ensure queries have something to find
+    populate_data()
+    # Run the queries
+    run_queries()
