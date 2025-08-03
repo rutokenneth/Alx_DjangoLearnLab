@@ -1,21 +1,5 @@
-### `delete.md`
-
-````markdown
-### Delete Operation
-
-**Command:**
-
-```python
-from library.models import Book
-book = Book.objects.get(title="Nineteen Eighty-Four") # Get the updated book
+from bookshelf.models import Book
+book = Book.objects.get(title="Nineteen Eighty-Four")
 book.delete()
-print(Book.objects.all()) # Try to retrieve all books to confirm deletion
-````
-
-**Output:**
-
-```
-# Expected output:
+Book.objects.all()
 # <QuerySet []>
-# This indicates that there are no Book instances left in the database.
-```
